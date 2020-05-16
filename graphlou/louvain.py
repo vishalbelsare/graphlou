@@ -3,18 +3,8 @@ from statistics import mean
 from itertools import combinations, chain, product
 from collections import defaultdict
 
-
-###########
-# UTILITIES
-###########
-
-
-def get_lt_adj_matrix_entry(i, j, adj_matrix):
-    # lt = left-triangular
-    if len(adj_matrix[i]) <= j:
-        return adj_matrix[j][i]
-
-    return adj_matrix[i][j]
+# Local Modules
+from .utilities import get_lt_adj_matrix_entry
 
 
 #########
@@ -28,7 +18,7 @@ def get_all_edges(nodes):
 
 def compute_sigma_in(nodes_in_C, adj_matrix):
     # Sum of the edge weights of the links inside community C
-    return sum(adj_matrix[u][v] for u, v in get_all_edges(nodes_in_C))
+    return sum(get_lt_adj_matrix_entry(u, v, adj_matrix) for u, v in get_all_edges(nodes_in_C))
 
 
 def compute_sigma_tot(nodes_in_C, adj_matrix):
@@ -95,7 +85,7 @@ def create_Q_computer(adj_matrix):
 
     summation_terms = []
     for i, j in get_all_edges(range(len(adj_matrix))):
-        A_ij = adj_matrix[i][j]
+        A_ij = get_lt_adj_matrix_entry(i, j, adj_matrix)
         k_i = compute_k(i, adj_matrix)
         k_j = compute_k(j, adj_matrix)
 
@@ -204,11 +194,11 @@ def run_second_phase(node_to_comm, adj_matrix, true_partition):
         row_vec = []
         for j, neighbor_cluster in enumerate(node_clusters):
             if i == j:  # Sum all intra-community weights and add as self-loop
-                edge_weights = (adj_matrix[u][v]
+                edge_weights = (get_lt_adj_matrix_entry(u, v, adj_matrix)
                                 for u, v in get_all_edges(cluster))
                 edge_weight = 2 * sum(edge_weights)
             else:
-                edge_weights = (adj_matrix[u][v]
+                edge_weights = (get_lt_adj_matrix_entry(u, v, adj_matrix)
                                 for u in cluster for v in neighbor_cluster)
                 edge_weight = sum(edge_weights)
 
@@ -225,7 +215,7 @@ def run_second_phase(node_to_comm, adj_matrix, true_partition):
 #########
 
 
-def apply_louvains_algo(adj_matrix, size=None):
+def detect_communities(adj_matrix, size=None):
     optimal_adj_matrix = adj_matrix
     node_to_comm = initialize_communities(adj_matrix)
     true_partition = [[i] for i in range(len(adj_matrix))]
@@ -300,12 +290,3 @@ def create_comm_graphs(partition, adj_matrix):
             comm_adj_matrix.append(edge_vecs)
 
         yield comm_adj_matrix
-
-
-if __name__ = "__main__":
-    comm_adj_matrix = create_adj_matrix_for_comms(
-        adj_matrix,
-        partition,
-        starting_node
-    )
-    comm_graphs = create_comm_graphs(partition, adj_matrix, node_feats)
