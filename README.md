@@ -1,2 +1,5 @@
-# modified-louvain
-Louvain's graph clustering algorithm, except you can choose the number of output clusters
+# graphlou
+
+`graphlou` is a Python implementation of Louvain's community detection algorithm.
+
+TODO: Finish README.
